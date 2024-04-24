@@ -3,7 +3,8 @@ use mongodb::options::ClientOptions;
 use mongodb::{Client, Collection};
 use serde::{Deserialize, Serialize};
 
-pub struct UserColl {
+#[derive(Clone)]
+pub struct UserRepo {
     pub user_coll: Collection<User>,
 }
 
@@ -22,7 +23,7 @@ pub struct User {
     pub dob: String,
 }
 
-impl UserColl {
+impl UserRepo {
     pub async fn init() -> Result<Self, ()> {
         let mut client_options = ClientOptions::parse("mongodb://172.26.192.1:27017/")
             .await

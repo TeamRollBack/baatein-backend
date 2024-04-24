@@ -1,21 +1,33 @@
+use std::sync::Arc;
+
+use axum::{http::StatusCode, routing::{get, post}, Router};
+use handlers::user_handler::add_user;
+use repositories::user_repo::UserRepo;
+
+mod handlers;
 mod repositories;
 
-use repositories::user_repo;
+struct AppState {
+    user_repo: UserRepo,
+}
+
+async fn say_hello() -> (StatusCode, String) {
+    (StatusCode::OK, "Hello World!".to_string())
+}
 
 #[tokio::main]
-async fn main() -> Result<(), ()> {
-    println!("Hello, world!");
+async fn main() {
+    let shared_state = Arc::new(AppState {
+        user_repo: UserRepo::init().await.unwrap(),
+    });
 
-    let user_coll = user_repo::UserColl::init().await?;
-    let u = user_repo::User {
-        first_name: "Rohit".to_string(),
-        last_name: "Mokashi".to_string(),
-        username: "rohitmokashi".to_string(),
-        gender: user_repo::Gender::Male,
-        dob: "2003-06-12".to_string(),
-    };
+    // build our application with a single route
+    let app = Router::new()
+        .route("/", get(say_hello))
+        .route("/user/add", post(add_user))
+        .with_state(shared_state);
 
-    user_coll.add_user(u).await;
-
-    Ok(())
+    // run our app with hyper, listening globally on port 3000
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
