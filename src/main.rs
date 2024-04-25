@@ -6,6 +6,7 @@ use repositories::user_repo::UserRepo;
 
 mod handlers;
 mod repositories;
+mod db;
 
 struct AppState {
     user_repo: UserRepo,
@@ -17,8 +18,11 @@ async fn say_hello() -> (StatusCode, String) {
 
 #[tokio::main]
 async fn main() {
+
+    let baatein_db = db::DB::init().await.unwrap();
+
     let shared_state = Arc::new(AppState {
-        user_repo: UserRepo::init().await.unwrap(),
+        user_repo: UserRepo::init(baatein_db).await.unwrap(),
     });
 
     // build our application with a single route
