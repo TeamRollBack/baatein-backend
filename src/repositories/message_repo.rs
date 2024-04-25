@@ -13,8 +13,8 @@ pub struct MessageRepo {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Message {
-    sender: ObjectId,
-    message: String,
+    pub sender: ObjectId,
+    pub message: String,
 }
 
 impl MessageRepo {

@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use mongodb::bson::Document;
 use mongodb::bson::{doc, oid::ObjectId};
 use mongodb::Collection;
@@ -65,17 +67,33 @@ impl UserRepo {
     }
 
     pub async fn get_user_oid(&self, username: String) -> ObjectId {
-        if self.user_exists(username.clone()).await {
-            self.gen_coll
-                .find_one(doc! {"username": username}, None)
-                .await
-                .unwrap()
-                .expect("user not found")
-                .get_object_id("_id")
-                .unwrap()
-        } else {
-            ObjectId::new()
-        }
+        self.gen_coll
+            .find_one(doc! {"username": username}, None)
+            .await
+            .unwrap()
+            .expect("user not found")
+            .get_object_id("_id")
+            .unwrap()
+    }
 
+    pub async fn uid_exists(&self, oid: ObjectId) -> bool {
+        let u = self
+            .user_coll
+            .find_one(doc! {"_id": oid}, None)
+            .await
+            .expect("error");
+
+        match u {
+            Some(_u) => true,
+            None => false,
+        }
+    }
+
+    pub async fn find_user_by_id(&self, oid: ObjectId) -> User {
+        self.user_coll
+            .find_one(doc! {"_id": oid}, None)
+            .await
+            .unwrap()
+            .unwrap()
     }
 }
