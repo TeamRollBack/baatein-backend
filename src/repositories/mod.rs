@@ -1,5 +1,3 @@
 pub mod user_repo;
-
-pub fn fun() {
-    println!("module used");
-}
+pub mod chat_repo;
+pub mod message_repo;
