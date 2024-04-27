@@ -1,5 +1,5 @@
 use mongodb::{
-    bson::{oid::ObjectId, Document},
+    bson::{oid::ObjectId, Bson, Document},
     Collection,
 };
 use serde::{Deserialize, Serialize};
@@ -17,6 +17,13 @@ pub struct Message {
     pub message: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MessageRequest {
+    pub sender: ObjectId,
+    pub reciever: ObjectId,
+    pub message: String,
+}
+
 impl MessageRepo {
     pub async fn init(db: DB) -> Result<Self, ()> {
         Ok(Self {
@@ -25,10 +32,11 @@ impl MessageRepo {
         })
     }
 
-    pub async fn create_message(&self, message: Message) {
-        self.message_coll
+    pub async fn create_message(&self, message: Message) -> Bson {
+        let a = self.message_coll
             .insert_one(message, None)
             .await
             .expect("error creating message");
+        a.inserted_id
     }
 }

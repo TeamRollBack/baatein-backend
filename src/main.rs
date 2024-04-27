@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use axum::{http::StatusCode, routing::{get, post}, Router};
-use handlers::{message_handler::create_message, user_handler::add_user};
-use repositories::{message_repo::MessageRepo, user_repo::UserRepo};
+use handlers::{chat_handler::{create_chat, send_message}, message_handler::create_message, user_handler::add_user};
+use repositories::{chat_repo::ChatRepo, message_repo::MessageRepo, user_repo::UserRepo};
 
 mod handlers;
 mod repositories;
@@ -11,6 +11,7 @@ mod db;
 struct AppState {
     user_repo: UserRepo,
     message_repo: MessageRepo,
+    chat_repo: ChatRepo,
 }
 
 async fn say_hello() -> (StatusCode, String) {
@@ -24,14 +25,17 @@ async fn main() {
 
     let shared_state = Arc::new(AppState {
         user_repo: UserRepo::init(baatein_db.clone()).await.unwrap(),
-        message_repo: MessageRepo::init(baatein_db).await.unwrap(),
+        message_repo: MessageRepo::init(baatein_db.clone()).await.unwrap(),
+        chat_repo: ChatRepo::init(baatein_db.clone()).await.unwrap(),
     });
 
     // build our application with a single route
     let app = Router::new()
         .route("/", get(say_hello))
         .route("/user/add", post(add_user))
-        .route("/msg/creat", post(create_message))
+        .route("/msg/create", post(create_message))
+        .route("/chat/create", post(create_chat))
+        .route("/sendmsg", post(send_message))
         .with_state(shared_state);
 
     // run our app with hyper, listening globally on port 3000
