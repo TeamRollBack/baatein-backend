@@ -16,3 +16,7 @@ pub async fn add_user(
         (StatusCode::CONFLICT, Json("user already exists".to_string()))
     }
 }
+
+pub async fn get_users(State(shared_state): State<Arc<AppState>>) -> (StatusCode, Json<Vec<User>>) {
+    (StatusCode::OK, Json(shared_state.user_repo.get_all_users().await))
+}

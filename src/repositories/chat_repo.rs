@@ -23,6 +23,12 @@ pub struct Chat {
     messages: Vec<Bson>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChatRequest {
+    pub u1: String,
+    pub u2: String,
+}
+
 impl ChatRepo {
     pub async fn init(db: DB) -> Result<Self, ()> {
         Ok(Self {
@@ -51,5 +57,23 @@ impl ChatRepo {
         };
 
         self.chat_coll.find_one_and_update(filter, doc!{"$push": {"messages": msg_id }}, None).await.unwrap();
+    }
+
+    pub async fn get_chats(&self, participants: Participants) -> Vec<Bson> {
+        let filter = doc! {
+            "$or": [
+                    {"participants": {"p1": participants.p1, "p2": participants.p2}},
+                    {"participants": {"p1": participants.p2, "p2": participants.p1}}
+                ]
+        };
+
+        match self.chat_coll.find_one(filter, None).await.unwrap() {
+            Some(chat) => {
+                chat.messages
+            },
+            None => {
+                Vec::new()
+            }
+        }
     }
 }

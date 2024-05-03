@@ -1,5 +1,5 @@
 use mongodb::{
-    bson::{oid::ObjectId, Bson, Document},
+    bson::{doc, oid::ObjectId, Bson, Document},
     Collection,
 };
 use serde::{Deserialize, Serialize};
@@ -38,5 +38,11 @@ impl MessageRepo {
             .await
             .expect("error creating message");
         a.inserted_id
+    }
+
+    pub async fn get_msg_by_id(&self, mid: Bson) -> Message {
+        let msg = self.message_coll.find_one(doc! {"_id": mid}, None).await.unwrap();
+
+        msg.unwrap()
     }
 }

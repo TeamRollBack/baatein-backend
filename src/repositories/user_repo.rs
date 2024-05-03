@@ -1,9 +1,8 @@
-use std::str::FromStr;
-
 use mongodb::bson::Document;
 use mongodb::bson::{doc, oid::ObjectId};
 use mongodb::Collection;
 use serde::{Deserialize, Serialize};
+use futures::stream::TryStreamExt;
 
 use crate::db::DB;
 
@@ -96,4 +95,15 @@ impl UserRepo {
             .unwrap()
             .unwrap()
     }
+
+    pub async fn get_all_users(&self) -> Vec<User> {
+        let mut users: Vec<User> = Vec::new();
+        let mut cursor = self.user_coll.find(doc! {}, None).await.unwrap();
+
+        while let Some(u) = cursor.try_next().await.unwrap() {
+            users.push(u);
+        }
+        users
+    }
+
 }
